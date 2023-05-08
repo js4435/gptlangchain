@@ -2,9 +2,16 @@ import os
 import streamlit as st
 from main import create_db_from_youtube_video_url, get_response_from_query, create_embeddings
 import textwrap
+import re
 
 # 페이지 설정
 st.set_page_config(page_title="YouTube Q&A App", layout="wide")
+
+def convert_share_link_to_standard_url(url):
+    if "youtu.be" in url:
+        video_id = re.findall(r"youtu\.be/([^?/]+)", url)[0]
+        return f"https://www.youtube.com/watch?v={video_id}"
+    return url
 
 # OpenAI API Key 입력 받기
 if "api_key" not in st.session_state:
@@ -35,6 +42,7 @@ st.write("Ask a question based on a YouTube video, and get an answer!")
 
 # 입력 필드
 video_url = st.text_input("Enter YouTube video URL:")
+video_url = convert_share_link_to_standard_url(video_url)
 question = st.text_input("Enter your question:")
 
 # 버튼을 누르면 쿼리 실행 및 결과 표시
