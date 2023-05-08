@@ -5,16 +5,27 @@ import textwrap
 
 st.set_page_config(page_title="YouTube Transcript Q&A App", layout="wide")
 
-# Side bar
-if not os.environ.get("OPENAI_API_KEY"):
-    st.sidebar.title("Settings")
-    api_key = st.sidebar.text_input("Enter your OpenAI API Key:")
+if "api_key" not in st.session_state:
+    st.session_state.api_key = None
 
-    if st.sidebar.button("Save API Key"):
-        os.environ["OPENAI_API_KEY"] = api_key
+if st.session_state.api_key is None:
+    st.sidebar.subheader("API Key")
+    api_key_input = st.sidebar.text_input("Enter your OpenAI API Key:")
+    save_button = st.sidebar.button("Save API Key")
+
+    if save_button:
+        if api_key_input:
+            st.session_state.api_key = api_key_input
+            os.environ["OPENAI_API_KEY"] = api_key_input
+            st.sidebar.success("API Key saved. You can use the app now.")
+        else:
+            st.sidebar.error("Please enter a valid API Key.")
 else:
-    st.sidebar.success("API Key saved. You can use the app now.")
-
+    st.sidebar.success("API Key is set. You can use the app now.")
+    if st.sidebar.button("Reset API Key"):
+        st.session_state.api_key = None
+        del os.environ["OPENAI_API_KEY"]
+        st.sidebar.success("API Key has been reset. Refresh the page to enter a new API Key.")
 
 # App title and description
 st.title("YouTube Transcript Q&A App")
@@ -26,9 +37,9 @@ question = st.text_input("Enter your question:")
 
 # Button to run the query and show the result
 if st.button("Get Answer"):
-    if os.environ.get("OPENAI_API_KEY"):
+    if st.session_state.api_key:
         try:
-            embeddings = create_embeddings(os.environ["OPENAI_API_KEY"])
+            embeddings = create_embeddings(st.session_state.api_key)
             db = create_db_from_youtube_video_url(video_url, embeddings)
             response, docs = get_response_from_query(db, question, embeddings)
             st.write(textwrap.fill(response, width=50))
