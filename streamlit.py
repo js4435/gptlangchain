@@ -3,8 +3,10 @@ import streamlit as st
 from main import create_db_from_youtube_video_url, get_response_from_query, create_embeddings
 import textwrap
 
-st.set_page_config(page_title="YouTube Transcript Q&A App", layout="wide")
+# 페이지 설정
+st.set_page_config(page_title="YouTube Q&A App", layout="wide")
 
+# OpenAI API Key 입력 받기
 if "api_key" not in st.session_state:
     st.session_state.api_key = None
 
@@ -27,23 +29,23 @@ else:
         del os.environ["OPENAI_API_KEY"]
         st.sidebar.success("API Key has been reset. Refresh the page to enter a new API Key.")
 
-# App title and description
-st.title("YouTube Transcript Q&A App")
-st.write("Ask a question based on a YouTube video transcript, and get an answer!")
+# 앱 제목과 설명
+st.title("YouTube  Q&A App")
+st.write("Ask a question based on a YouTube video, and get an answer!")
 
-# Input fields
+# 입력 필드
 video_url = st.text_input("Enter YouTube video URL:")
 question = st.text_input("Enter your question:")
 
-# Button to run the query and show the result
+# 버튼을 누르면 쿼리 실행 및 결과 표시
 if st.button("Get Answer"):
     if st.session_state.api_key:
         try:
-            embeddings = create_embeddings(st.session_state.api_key)
-            db = create_db_from_youtube_video_url(video_url, embeddings)
-            response, docs = get_response_from_query(db, question, embeddings)
-            st.write(textwrap.fill(response, width=50))
+            embeddings = create_embeddings(st.session_state.api_key) # OpenAI API Key를 이용하여 임베딩 생성
+            db = create_db_from_youtube_video_url(video_url, embeddings) # YouTube 비디오 URL을 이용하여 데이터베이스 생성
+            response, docs = get_response_from_query(db, question, embeddings) # 질문에 대한 답변 및 문서 검색
+            st.write(textwrap.fill(response, width=100)) # 답변 출력
         except Exception as e:
-            st.write(f"An error occurred: {e}")
+            st.write(f"An error occurred: {e}") # 예외 처리
     else:
-        st.write("Please enter and save your OpenAI API Key in the Settings.")
+        st.write("Please enter and save your OpenAI API Key in the Settings.") # OpenAI API Key가 없는 경우 메시지 출력
